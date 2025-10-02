@@ -1,0 +1,48 @@
+name: Build FFmpeg
+on:
+  workflow_dispatch: {}
+
+jobs:
+  build_ffmpeg_macos:
+    if: github.ref_type == 'tag'
+    runs-on: macos-14
+    permissions: 
+      contents: write
+    steps:
+      - name: Install dependencies
+        run: brew install wget
+
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Download FFmpeg sources
+        run: wget -O ffmpeg.tar.gz 'https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n8.0.tar.gz'
+
+      - name: Unpack FFmpeg sources
+        run: tar -zxvf ffmpeg.tar.gz --strip-components=1
+
+      - name: Configure build
+        run: ./configure --disable-gpl --disable-nonfree --enable-shared --disable-programs --disable-doc
+      
+      - name: Build FFmpeg
+        run: make -j$(sysctl -n hw.physicalcpu)
+
+      - name: Extract dynamic libraries
+        run: mkdir -p lib && find -LE . -type f -iregex "^\./lib[a-zA-Z/]+\.[0-9.]+dylib$" -exec cp {} lib \;
+      
+      - name: Change absolute paths dependency paths to relative
+        run: ./change_deps.sh
+
+      - name: Pack and compress libs
+        run: tar -zcvf ffmpeg_macos_arm.tar.gz lib
+
+      - name: Upload tar
+        uses: actions/upload-artifact@v4
+        with:
+          name: ffmpeg_macos_arm.tar.gz
+          path: ffmpeg_macos_arm.tar.gz
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ffmpeg_macos_arm.tar.gz
