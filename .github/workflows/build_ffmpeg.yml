@@ -32,7 +32,7 @@ jobs:
         run: make -j$(sysctl -n hw.physicalcpu)
 
       - name: Extract dynamic libraries
-        run: mkdir -p lib && find -LE . -type f -iregex "^\./lib[a-zA-Z]+\.[0-9.]+dylib$" -exec cp {} lib \;
+        run: mkdir -p lib && find -LE . -type f -iregex "^\./lib[a-zA-Z/]+\.[0-9.]+dylib$" -exec cp {} lib \;
       
       - name: Change absolute paths dependency paths to relative
         run: ./change_deps.sh
