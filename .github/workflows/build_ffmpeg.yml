@@ -1,4 +1,4 @@
-name: Build FFmpeg 8.0
+name: Build FFmpeg
 on:
   workflow_dispatch:
     inputs:
