@@ -3,7 +3,7 @@
 ## Build new FFmpeg version
 - To start build first visit the [FFmpeg repository](https://github.com/FFmpeg/FFmpeg/tags) and pick a release.
 - Copy `URL` of sources in `*.tar.gz` format.
-- Start `Build FFmpeg` action from `master` branch.
+- Start [Build FFmpeg](https://github.com/smelter-labs/smelter-dep-prebuilds/actions/workflows/build_ffmpeg.yml) action from `master` branch.
 - In `tag` field enter FFmpeg version in **X.Y** format (make sure it doesn't already exist).
 - In `source_url` field enter the `URL` to FFmpeg sources.
 - Start workflow.
