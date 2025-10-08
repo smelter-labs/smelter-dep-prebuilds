@@ -21,7 +21,7 @@ jobs:
 
       - name: Validate input
         id: input-validation
-        run: echo "FFMPEG_VERSION=$(./validate_input.sh '${{ inputs.source_url }}') >> "$GITHUB_OUTPUT"
+        run: echo "FFMPEG_VERSION=$(./validate_input.sh '${{ inputs.source_url }}')" >> "$GITHUB_OUTPUT"
 
       - name: Download FFmpeg sources
         run: wget -O ffmpeg.tar.gz '${{ inputs.source_url }}'
