@@ -2,10 +2,6 @@ name: Build FFmpeg
 on:
   workflow_dispatch:
     inputs:
-      tag:
-        description: 'FFmpeg version in "x.y" format.'
-        required: true
-        type: string
       source_url:
         description: 'URL of FFmpeg source to build.'
         required: true
