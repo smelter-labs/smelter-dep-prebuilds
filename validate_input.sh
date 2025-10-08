@@ -8,7 +8,7 @@
 set -eo pipefail
 
 if (( $# != 1 )); then
-    echo "Usage: $0 <FFMPEG_URL>"
+    >&2 echo "Usage: $0 <FFMPEG_URL>"
     exit 1
 fi
 
@@ -21,7 +21,7 @@ if [[ $FFMPEG_URL =~ $URL_REGEX ]]; then
     URL_VERSION=${BASH_REMATCH[1]}
     echo -n "$URL_VERSION"
 else
-    echo "Invalid URL. URL should point to *.tar.gz file in FFmpeg github repo."
+    >&2 echo "Invalid URL. URL should point to *.tar.gz file in FFmpeg github repo."
     exit 1
 fi
 
