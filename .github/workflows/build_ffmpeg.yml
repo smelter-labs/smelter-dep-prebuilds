@@ -44,16 +44,16 @@ jobs:
         run: ./change_deps.sh
 
       - name: Pack and compress libs
-        run: tar -zcvf ffmpeg_macos_arm.tar.gz lib
+        run: tar -zcvf 'ffmpeg_n${{ steps.input-validation.outputs.FFMPEG_VERSION }}_macos_arm.tar.gz' lib
 
       - name: Upload tar
         uses: actions/upload-artifact@v4
         with:
-          name: ffmpeg_macos_arm.tar.gz
-          path: ffmpeg_macos_arm.tar.gz
+          name: ffmpeg_n${{ steps.input-validation.outputs.FFMPEG_VERSION }}_macos_arm.tar.gz
+          path: ffmpeg_n${{ steps.input-validation.outputs.FFMPEG_VERSION }}_macos_arm.tar.gz
 
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: n${{ steps.input-validation.outputs.FFMPEG_VERSION }}
-          files: ffmpeg_macos_arm.tar.gz
+          files: ffmpeg_n${{ steps.input-validation.outputs.FFMPEG_VERSION }}_macos_arm.tar.gz
