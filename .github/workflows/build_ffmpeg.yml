@@ -33,11 +33,11 @@ jobs:
           mkdir -p ffmpeg
           tar -zxvf ffmpeg.tar.gz --strip-components=1 -C ./ffmpeg
 
-      - name: Configure build
-        run: ./configure --disable-gpl --disable-nonfree --enable-shared --disable-programs --disable-doc
-      
-      - name: Build FFmpeg
-        run: make -j$(sysctl -n hw.physicalcpu)
+      - name: Configure and build FFmpeg
+        run: |
+          ./configure --disable-gpl --disable-nonfree --enable-shared --disable-programs --disable-doc
+          make -j$(sysctl -n hw.physicalcpu)
+        working-directory: ./ffmpeg
 
         # Finds all built *.n.dylib files. If a found file is a symlink it copies
         # the file it points to under the symlink name
