@@ -35,8 +35,10 @@ jobs:
       - name: Build FFmpeg
         run: make -j$(sysctl -n hw.physicalcpu)
 
+        # Finds all built *.n.dylib files. If a found file is a symlink it copies
+        # the file it points to under the symlink name
       - name: Extract dynamic libraries
-        run: mkdir -p lib && find -LE . -type f -iregex "^\./lib[a-zA-Z/]+\.[0-9.]+dylib$" -exec cp {} lib \;
+        run: mkdir -p lib && find -LE . -type f -iregex "^.*/lib[a-zA-Z/]+\.[0-9.]+dylib$" -exec cp {} lib \;
       
       - name: Change absolute paths dependency paths to relative
         run: ./change_deps.sh
