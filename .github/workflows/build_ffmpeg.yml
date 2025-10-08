@@ -46,7 +46,7 @@ jobs:
           mkdir -p lib
           find -LE ./ffmpeg -type f -iregex "^.*/lib[a-zA-Z/]+\.[0-9.]+dylib$" -exec cp {} ./lib \;
       
-      - name: Change absolute paths dependency paths to relative
+      - name: Change absolute dependency paths to relative
         run: ./change_deps.sh
 
       - name: Pack and compress libs
