@@ -19,7 +19,7 @@ URL_REGEX="^https://github\.com/FFmpeg/FFmpeg/archive/refs/tags/n([0-9]+\.[0-9]+
 
 if [[ $FFMPEG_URL =~ $URL_REGEX ]]; then
     URL_VERSION=${BASH_REMATCH[1]}
-    echo "$URL_VERSION"
+    echo -n "$URL_VERSION"
 else
     echo "Invalid URL. URL should point to *.tar.gz file in FFmpeg github repo."
     exit 1

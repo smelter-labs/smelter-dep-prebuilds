@@ -24,7 +24,8 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Validate input
-        run: ./validate_input.sh '${{ inputs.tag }}' '${{ inputs.source_url }}'
+        id: input-validation
+        run: echo "FFMPEG_VERSION=$(./validate_input.sh '${{ inputs.source_url }}') >> "$GITHUB_OUTPUT"
 
       - name: Download FFmpeg sources
         run: wget -O ffmpeg.tar.gz '${{ inputs.source_url }}'
@@ -56,5 +57,5 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: n${{ inputs.tag }}
+          tag_name: n${{ steps.input-validation.outputs.FFMPEG_VERSION }}
           files: ffmpeg_macos_arm.tar.gz
