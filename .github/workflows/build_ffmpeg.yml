@@ -23,6 +23,9 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Validate input
+        run: ./validate_input.sh '${{ inputs.tag }}' '${{ inputs.source_url }}'
+
       - name: Download FFmpeg sources
         run: wget -O ffmpeg.tar.gz '${{ inputs.source_url }}'
 
