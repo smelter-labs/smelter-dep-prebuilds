@@ -36,11 +36,13 @@ jobs:
       - name: Configure and build FFmpeg
         run: ./configure \
           --disable-gpl \
-          --disable-nonfree
+          --disable-nonfree \
           --enable-shared \
+          --disable-static \
           --disable-programs \
           --disable-doc \
-          --enable-libvpx
+          --enable-libvpx \
+          --disable-librtmp
         working-directory: ./ffmpeg
 
       - name: Build FFmpeg
