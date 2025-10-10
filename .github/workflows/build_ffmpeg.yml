@@ -14,7 +14,7 @@ jobs:
       contents: write
     steps:
       - name: Install dependencies
-        run: brew install wget
+        run: brew install wget libvpx
 
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -34,14 +34,15 @@ jobs:
           tar -zxvf ffmpeg.tar.gz --strip-components=1 -C ./ffmpeg
 
       - name: Configure and build FFmpeg
-        run: ./configure \
-          --disable-gpl \
-          --disable-nonfree \
-          --enable-shared \
-          --disable-static \
-          --disable-programs \
-          --disable-doc \
-          --enable-libvpx \
+        run: >
+          ./configure
+          --disable-gpl
+          --disable-nonfree
+          --enable-shared
+          --disable-static
+          --disable-programs
+          --disable-doc
+          --enable-libvpx
           --disable-librtmp
         working-directory: ./ffmpeg
 
