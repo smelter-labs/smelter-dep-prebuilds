@@ -135,7 +135,7 @@ jobs:
       - name: Extract dynamic libraries
         run: |
           mkdir -p lib
-          find -LE ./ffmpeg -type f -iregex "^.*/lib[a-zA-Z]+\.so\.[0-9]+$" -exec cp {} ./lib \;
+          find -L ./ffmpeg -type f -iregex "^.*/lib[a-zA-Z]+\.so\.[0-9]+$" -exec cp {} ./lib \;
 
       - name: Pack and compress libs
         env:
@@ -169,7 +169,7 @@ jobs:
       - name: Extract dynamic libraries
         run: |
           mkdir -p lib
-          find -LE ./ffmpeg -type f -iregex "^.*/lib[a-zA-Z]+\.so\.[0-9]+$" -exec cp {} ./lib \;
+          find -L ./ffmpeg -type f -iregex "^.*/lib[a-zA-Z]+\.so\.[0-9]+$" -exec cp {} ./lib \;
 
       - name: Pack and compress libs
         env:
