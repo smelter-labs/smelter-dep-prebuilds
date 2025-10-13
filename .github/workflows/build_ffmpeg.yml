@@ -114,8 +114,93 @@ jobs:
           name: ffmpeg_n${{ needs.check_version.outputs.ffmpeg_version }}_macos_arm.tar.gz
           path: ffmpeg_n${{ needs.check_version.outputs.ffmpeg_version }}_macos_arm.tar.gz
 
-  # release_ffmpeg_prebuilds:
-  #   runs-on: ubuntu-24.04
-  #   permissions:
-  #     contents: write
-  #   steps:
+  get_ffmpeg_linux_amd64:
+    runs-on: ubuntu-24.04
+    if: inputs.linux_amd64_prebuild_url != ''
+    needs: check_version
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Download FFmpeg prebuilts
+        run: wget -O ffmpeg.tar.xz '${{ inputs.linux_amd64_prebuild_url }}'
+
+      - name: Unpack FFmpeg sources
+        run: |
+          mkdir -p ffmpeg
+          tar --xz xvf ffmpeg.tar.xz --strip-components=1 -C ./ffmpeg
+
+        # Finds all built *.n.so files. If a found file is a symlink it copies
+        # the file it points to under the symlink name
+      - name: Extract dynamic libraries
+        run: |
+          mkdir -p lib
+          find -LE ./ffmpeg -type f -iregex "^.*/lib[a-zA-Z]+\.so\.[0-9]+$" -exec cp {} ./lib \;
+
+      - name: Pack and compress libs
+        env:
+          FFMPEG_VERSION: ${{ needs.check_version.outputs.ffmpeg_version }}
+        run: tar -zcvf "ffmpeg_n${FFMPEG_VERSION}_linux_x86_64.tar.gz" lib
+
+      - name: Upload tar
+        uses: actions/upload-artifact@v4
+        with:
+          name: ffmpeg_n${{ needs.check_version.outputs.ffmpeg_version }}_linux_x86_64.tar.gz
+          path: ffmpeg_n${{ needs.check_version.outputs.ffmpeg_version }}_linuc_x86_64.tar.gz
+
+  get_ffmpeg_linux_arm64:
+    runs-on: ubuntu-24.04-arm
+    if: inputs.linux_arm64_prebuild_url != ''
+    needs: check_version
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Download FFmpeg prebuilts
+        run: wget -O ffmpeg.tar.xz '${{ inputs.linux_arm64_prebuild_url }}'
+
+      - name: Unpack FFmpeg sources
+        run: |
+          mkdir -p ffmpeg
+          tar --xz xvf ffmpeg.tar.xz --strip-components=1 -C ./ffmpeg
+
+        # Finds all built *.n.so files. If a found file is a symlink it copies
+        # the file it points to under the symlink name
+      - name: Extract dynamic libraries
+        run: |
+          mkdir -p lib
+          find -LE ./ffmpeg -type f -iregex "^.*/lib[a-zA-Z]+\.so\.[0-9]+$" -exec cp {} ./lib \;
+
+      - name: Pack and compress libs
+        env:
+          FFMPEG_VERSION: ${{ needs.check_version.outputs.ffmpeg_version }}
+        run: tar -zcvf "ffmpeg_n${FFMPEG_VERSION}_linux_arm64.tar.gz" lib
+
+      - name: Upload tar
+        uses: actions/upload-artifact@v4
+        with:
+          name: ffmpeg_n${{ needs.check_version.outputs.ffmpeg_version }}_linux_arm64.tar.gz
+          path: ffmpeg_n${{ needs.check_version.outputs.ffmpeg_version }}_linuc_arm64.tar.gz
+
+  release_ffmpeg_prebuilds:
+    runs-on: ubuntu-24.04
+    if: ${{ always() && !failure() && !cancelled() }}
+    needs: [check_version, build_ffmpeg_macos, get_ffmpeg_linux_amd64, get_ffmpeg_linux_arm64]
+    permissions:
+      contents: write
+    steps:
+      - name: 📥 Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Downlad smelter binaries
+        uses: actions/download-artifact@v5
+
+      - name: List files
+        run: ls -R ${{ github.workspace }}
+
+      - name: Release FFmpeg prebuilds
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: n${{ needs.check_version.outputs.ffmpeg_version }}
+          files: ${{ github.workspace }}/**/ffmpeg*.tar.gz
+          preserve_order: true
