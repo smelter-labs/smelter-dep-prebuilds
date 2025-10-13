@@ -18,15 +18,43 @@ on:
 jobs:
   check_version:
     runs-on: ubuntu-24.04
+    outputs:
+      ffmpeg_version: ${{ steps.version-check.outputs.FFMPEG_VERSION }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Check Mac version
         id: mac-version
-        run: ./validate_input_mac.sh '${{ inputs.mac_source_url }}'
+        run: |
+          FFMPEG_VERSION_MAC=$(./validate_input_mac.sh '${{ inputs.mac_source_url }}')
+          echo "FFMPEG_VERSION_MAC=$FFMPEG_VERSION_MAC" >> "$GITHUB_OUTPUT"
         working-directory: ./scripts
-        
+
+      - name: Check Linux amd64 version
+        id: linux64-version
+        run: |
+          FFMPEG_VERSION_LINUX_AMD=$(./validate_input_linux_amd64.sh '${{ inputs.linux_amd64_prebuild_url }}')
+          echo "FFMPEG_VERSION_LINUX_AMD=$FFMPEG_VERSION_LINUX_AMD" >> "$GITHUB_OUTPUT"
+        working-directory: ./scripts
+
+      - name: Check Linux arm64 version
+        id: linuxarm64-version
+        run: |
+          FFMPEG_VERSION_LINUX_ARM=$(./validate_input_linux_arm64.sh '${{ inputs.linux_arm64_prebuild_url }}')
+          echo "FFMPEG_VERSION_LINUX_ARM=$FFMPEG_VERSION_LINUX_ARM" >> "$GITHUB_OUTPUT"
+        working-directory: ./scripts
+
+      - name: Check version consictency
+        id: version-check
+        run: | 
+          FFMPEG_VERSION=$(\
+            ./version_check.sh '${{ steps.mac-version.outputs.FFMPEG_VERSION_MAC }}' \
+            '${{ steps.linux64-version.outputs.FFMPEG_VERION_LINUX_AMD }}' \
+            '${{ steps.linuxarm64-version.outputs.FFMPEG_VERSION_LINUX_ARM }}' \
+          )
+          echo "FFMPEG_VERSION=$FFMPEG_VERSION" >> "$GITHUB_OUTPUT"
+        working-directory: ./scripts
 
   build_ffmpeg_macos:
     runs-on: macos-14
@@ -84,8 +112,8 @@ jobs:
           name: ffmpeg_n${{ steps.input-validation.outputs.FFMPEG_VERSION }}_macos_arm.tar.gz
           path: ffmpeg_n${{ steps.input-validation.outputs.FFMPEG_VERSION }}_macos_arm.tar.gz
 
-  release_ffmpeg_prebuilds:
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: write
-    steps:
+  # release_ffmpeg_prebuilds:
+  #   runs-on: ubuntu-24.04
+  #   permissions:
+  #     contents: write
+  #   steps:
