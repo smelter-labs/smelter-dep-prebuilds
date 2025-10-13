@@ -50,7 +50,7 @@ jobs:
         run: | 
           FFMPEG_VERSION=$(\
             ./version_check.sh '${{ steps.mac-version.outputs.FFMPEG_VERSION_MAC }}' \
-            '${{ steps.linux64-version.outputs.FFMPEG_VERION_LINUX_AMD }}' \
+            '${{ steps.linux64-version.outputs.FFMPEG_VERSION_LINUX_AMD }}' \
             '${{ steps.linuxarm64-version.outputs.FFMPEG_VERSION_LINUX_ARM }}' \
           )
           echo "FFMPEG_VERSION=$FFMPEG_VERSION" >> "$GITHUB_OUTPUT"
