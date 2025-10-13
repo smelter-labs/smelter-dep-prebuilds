@@ -1,10 +1,14 @@
 # Build FFmpeg dynamic libraries
+This repo is used to build `FFmpeg` shared libraries for Apple silicon Mac or for redistribution of prebuilt libraries from BtbN/FFmpeg-Builds repo.
 
 ## Build new FFmpeg version
-- To start build first visit the [FFmpeg repository](https://github.com/FFmpeg/FFmpeg/tags) and pick a release.
-- Copy `URL` of sources in `*.tar.gz` format.
+- To create new release you need to acquire URL for `FFmpeg` sources (for MacOS) or/and for `FFmpeg` pre built binaries in BtbN/FFmpeg-Builds repo.
+- To create new MacOS build go to official [FFmpeg repository](https://github.com/FFmpeg/FFmpeg/tags) and copy URL of source code in `*tar.gz` format for desired version.
+- To create new Linux build go to BtbN/FFmpeg-Builds repository and copy URL to desired `FFmpeg` prebuilt version. **IMPORTANT**: URL has to point either to build which contains
+  `linux64-lgpl-shared` or `linuxarm64-lgpl-shared` in its name. Otherwise workflow fill fail.
 - Start [Build FFmpeg](https://github.com/smelter-labs/smelter-dep-prebuilds/actions/workflows/build_ffmpeg.yml) action from the `main` branch.
-- In `source_url` field enter the `URL` to FFmpeg sources.
+- Paste the links in the appropriate fields. For worflow to be successful at least one URL has to be specified.
+- If more than one URL is specified, all links need to point to the same `FFmpeg` version.
 - Start workflow.
 
 ## Adjust Smelter
