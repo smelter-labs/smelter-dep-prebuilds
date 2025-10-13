@@ -106,13 +106,13 @@ jobs:
       - name: Pack and compress libs
         env:
           FFMPEG_VERSION: ${{ needs.check_version.outputs.ffmpeg_version }}
-        run: tar -zcvf "ffmpeg_n${FFMPEG_VERSION}_macos_arm.tar.gz" lib
+        run: tar -zcvf "ffmpeg_n${FFMPEG_VERSION}_macos_arm64.tar.gz" lib
 
       - name: Upload tar
         uses: actions/upload-artifact@v4
         with:
-          name: ffmpeg_n${{ needs.check_version.outputs.ffmpeg_version }}_macos_arm.tar.gz
-          path: ffmpeg_n${{ needs.check_version.outputs.ffmpeg_version }}_macos_arm.tar.gz
+          name: ffmpeg_n${{ needs.check_version.outputs.ffmpeg_version }}_macos_arm64.tar.gz
+          path: ffmpeg_n${{ needs.check_version.outputs.ffmpeg_version }}_macos_arm64.tar.gz
 
   get_ffmpeg_linux_amd64:
     runs-on: ubuntu-24.04
