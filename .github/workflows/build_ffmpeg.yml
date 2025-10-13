@@ -2,31 +2,45 @@ name: Build FFmpeg
 on:
   workflow_dispatch:
     inputs:
-      source_url:
-        description: 'URL of FFmpeg source to build.'
-        required: true
+      mac_source_url:
+        description: 'URL of FFmpeg source for MacOS build.'
+        default: ''
+        type: string
+      linux_amd64_prebuild_url:
+        description: 'URL of FFmpeg prebuilt for x86_64 Linux'
+        default: ''
+        type: string
+      linux_arm64_prebuild_url:
+        description: 'URL of FFmpeg prebuilt for arm64 Linux'
+        default: ''
         type: string
 
 jobs:
+  check_version:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Check Mac version
+        id: mac-version
+        run: ./validate_input_mac.sh '${{ inputs.mac_source_url }}'
+        working-directory: ./scripts
+        
+
   build_ffmpeg_macos:
     runs-on: macos-14
-    permissions: 
-      contents: write
+    if: inputs.mac_source_url != ''
+    needs: check_version
     steps:
       - name: Install dependencies
-        run: brew install wget libvpx
+        run: brew install libvpx
 
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Validate input
-        id: input-validation
-        run: |
-          FFMPEG_VERSION=$(./validate_input.sh '${{ inputs.source_url }}')
-          echo "FFMPEG_VERSION=$FFMPEG_VERSION" >> "$GITHUB_OUTPUT"
-
       - name: Download FFmpeg sources
-        run: wget -O ffmpeg.tar.gz '${{ inputs.source_url }}'
+        run: wget -O ffmpeg.tar.gz '${{ inputs.mac_source_url }}'
 
       - name: Unpack FFmpeg sources
         run: |
@@ -37,7 +51,7 @@ jobs:
         run: >
           ./configure
           --disable-gpl
-          --disable-nonfree
+          --disable-nonfree"
           --enable-shared
           --disable-static
           --disable-programs
@@ -58,7 +72,8 @@ jobs:
           find -LE ./ffmpeg -type f -iregex "^.*/lib[a-zA-Z/]+\.[0-9.]+dylib$" -exec cp {} ./lib \;
       
       - name: Change absolute dependency paths to relative
-        run: ./change_deps.sh
+        run: ./change_deps.sh '${{ github.workspace }}'
+        working-directory: ./scripts
 
       - name: Pack and compress libs
         run: tar -zcvf 'ffmpeg_n${{ steps.input-validation.outputs.FFMPEG_VERSION }}_macos_arm.tar.gz' lib
@@ -69,8 +84,8 @@ jobs:
           name: ffmpeg_n${{ steps.input-validation.outputs.FFMPEG_VERSION }}_macos_arm.tar.gz
           path: ffmpeg_n${{ steps.input-validation.outputs.FFMPEG_VERSION }}_macos_arm.tar.gz
 
-      - name: Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: n${{ steps.input-validation.outputs.FFMPEG_VERSION }}
-          files: ffmpeg_n${{ steps.input-validation.outputs.FFMPEG_VERSION }}_macos_arm.tar.gz
+  release_ffmpeg_prebuilds:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
