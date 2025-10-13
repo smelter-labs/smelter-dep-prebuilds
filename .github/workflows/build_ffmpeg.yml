@@ -79,7 +79,7 @@ jobs:
         run: >
           ./configure
           --disable-gpl
-          --disable-nonfree"
+          --disable-nonfree
           --enable-shared
           --disable-static
           --disable-programs
@@ -104,13 +104,15 @@ jobs:
         working-directory: ./scripts
 
       - name: Pack and compress libs
-        run: tar -zcvf 'ffmpeg_n${{ steps.input-validation.outputs.FFMPEG_VERSION }}_macos_arm.tar.gz' lib
+        env:
+          FFMPEG_VERSION: ${{ needs.check_version.outputs.ffmpeg_version }}
+        run: tar -zcvf "ffmpeg_n${FFMPEG_VERSION}_macos_arm.tar.gz" lib
 
       - name: Upload tar
         uses: actions/upload-artifact@v4
         with:
-          name: ffmpeg_n${{ steps.input-validation.outputs.FFMPEG_VERSION }}_macos_arm.tar.gz
-          path: ffmpeg_n${{ steps.input-validation.outputs.FFMPEG_VERSION }}_macos_arm.tar.gz
+          name: ffmpeg_n${{ needs.check_version.outputs.ffmpeg_version }}_macos_arm.tar.gz
+          path: ffmpeg_n${{ needs.check_version.outputs.ffmpeg_version }}_macos_arm.tar.gz
 
   # release_ffmpeg_prebuilds:
   #   runs-on: ubuntu-24.04
