@@ -192,7 +192,7 @@ jobs:
       - name: 📥 Checkout repo
         uses: actions/checkout@v4
 
-      - name: Downlad smelter binaries
+      - name: Downlad FFmpeg binaries
         uses: actions/download-artifact@v5
 
       - name: List files
