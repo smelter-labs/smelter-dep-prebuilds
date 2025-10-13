@@ -128,7 +128,7 @@ jobs:
       - name: Unpack FFmpeg sources
         run: |
           mkdir -p ffmpeg
-          tar --xz xvf ffmpeg.tar.xz --strip-components=1 -C ./ffmpeg
+          tar --xz -xvf ffmpeg.tar.xz --strip-components=1 -C ./ffmpeg
 
         # Finds all built *.n.so files. If a found file is a symlink it copies
         # the file it points to under the symlink name
@@ -162,7 +162,7 @@ jobs:
       - name: Unpack FFmpeg sources
         run: |
           mkdir -p ffmpeg
-          tar --xz xvf ffmpeg.tar.xz --strip-components=1 -C ./ffmpeg
+          tar --xz -xvf ffmpeg.tar.xz --strip-components=1 -C ./ffmpeg
 
         # Finds all built *.n.so files. If a found file is a symlink it copies
         # the file it points to under the symlink name
