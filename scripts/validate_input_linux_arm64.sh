@@ -19,14 +19,14 @@ if [ -z "$FFMPEG_URL" ]; then
     exit 0
 fi
 
-# Checks if provided URL is URL to github FFmpeg repo, and if it is pointing to `*.tar.gz` file. Captures version in `x.y` format
+# Checks if provided URL is URL to github BtbN/FFmpeg-Builds repo, and if it is pointing to `linux64-lgpl-shared` file. Captures version in `x.y` format
 URL_REGEX="^https://github\.com/BtbN/FFmpeg-Builds/releases/download/.+/ffmpeg-n([0-9]+\.[0-9]+)\.?[0-9]*-?[0-9]*-[a-zA-Z0-9]+-linuxarm64-lgpl-shared-[0-9.]+\.tar\.xz$"
 
 if [[ $FFMPEG_URL =~ $URL_REGEX ]]; then
     URL_VERSION=${BASH_REMATCH[1]}
     echo -n "$URL_VERSION"
 else
-    >&2 echo "Invalid URL. URL should point to *.tar.gz file in FFmpeg github repo."
+    >&2 echo "Invalid URL. URL should point to linuxarm64-lgpl-shared file in BtbN/FFmpeg-Builds github repo."
     exit 1
 fi
 
