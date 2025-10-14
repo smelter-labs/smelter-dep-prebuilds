@@ -1,4 +1,4 @@
-# Build FFmpeg dynamic libraries
+# Smelter prebuilt dependencies
 This repo is used to build `FFmpeg` shared libraries for Apple silicon Mac or for redistribution of prebuilt libraries from
 [BtbN/FFmpeg-Builds](https://github.com/BtbN/FFmpeg-Builds/releases) repo.
 
