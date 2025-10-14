@@ -2,31 +2,73 @@ name: Build FFmpeg
 on:
   workflow_dispatch:
     inputs:
-      source_url:
-        description: 'URL of FFmpeg source to build.'
-        required: true
+      mac_source_url:
+        description: 'URL of FFmpeg source for MacOS build.'
+        default: ''
+        type: string
+      linux_amd64_prebuild_url:
+        description: 'URL of FFmpeg prebuilt for x86_64 Linux'
+        default: ''
+        type: string
+      linux_arm64_prebuild_url:
+        description: 'URL of FFmpeg prebuilt for arm64 Linux'
+        default: ''
         type: string
 
 jobs:
+  check_version:
+    runs-on: ubuntu-24.04
+    outputs:
+      ffmpeg_version: ${{ steps.version-check.outputs.FFMPEG_VERSION }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Check Mac version
+        id: mac-version
+        run: |
+          FFMPEG_VERSION_MAC=$(./validate_input_mac.sh '${{ inputs.mac_source_url }}')
+          echo "FFMPEG_VERSION_MAC=$FFMPEG_VERSION_MAC" >> "$GITHUB_OUTPUT"
+        working-directory: ./scripts
+
+      - name: Check Linux amd64 version
+        id: linux64-version
+        run: |
+          FFMPEG_VERSION_LINUX_AMD=$(./validate_input_linux_amd64.sh '${{ inputs.linux_amd64_prebuild_url }}')
+          echo "FFMPEG_VERSION_LINUX_AMD=$FFMPEG_VERSION_LINUX_AMD" >> "$GITHUB_OUTPUT"
+        working-directory: ./scripts
+
+      - name: Check Linux arm64 version
+        id: linuxarm64-version
+        run: |
+          FFMPEG_VERSION_LINUX_ARM=$(./validate_input_linux_arm64.sh '${{ inputs.linux_arm64_prebuild_url }}')
+          echo "FFMPEG_VERSION_LINUX_ARM=$FFMPEG_VERSION_LINUX_ARM" >> "$GITHUB_OUTPUT"
+        working-directory: ./scripts
+
+      - name: Check version consictency
+        id: version-check
+        run: | 
+          FFMPEG_VERSION=$(\
+            ./version_check.sh '${{ steps.mac-version.outputs.FFMPEG_VERSION_MAC }}' \
+            '${{ steps.linux64-version.outputs.FFMPEG_VERSION_LINUX_AMD }}' \
+            '${{ steps.linuxarm64-version.outputs.FFMPEG_VERSION_LINUX_ARM }}' \
+          )
+          echo "FFMPEG_VERSION=$FFMPEG_VERSION" >> "$GITHUB_OUTPUT"
+        working-directory: ./scripts
+
   build_ffmpeg_macos:
     runs-on: macos-14
-    permissions: 
-      contents: write
+    if: inputs.mac_source_url != ''
+    needs: check_version
     steps:
       - name: Install dependencies
-        run: brew install wget libvpx
+        run: brew install libvpx
 
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Validate input
-        id: input-validation
-        run: |
-          FFMPEG_VERSION=$(./validate_input.sh '${{ inputs.source_url }}')
-          echo "FFMPEG_VERSION=$FFMPEG_VERSION" >> "$GITHUB_OUTPUT"
-
       - name: Download FFmpeg sources
-        run: wget -O ffmpeg.tar.gz '${{ inputs.source_url }}'
+        run: wget -O ffmpeg.tar.gz '${{ inputs.mac_source_url }}'
 
       - name: Unpack FFmpeg sources
         run: |
@@ -54,23 +96,111 @@ jobs:
         # the file it points to under the symlink name
       - name: Extract dynamic libraries
         run: |
-          mkdir -p lib
-          find -LE ./ffmpeg -type f -iregex "^.*/lib[a-zA-Z/]+\.[0-9.]+dylib$" -exec cp {} ./lib \;
+          mkdir -p libav
+          find -LE ./ffmpeg -type f -iregex "^.*/lib[a-zA-Z/]+\.[0-9.]+dylib$" -exec cp {} ./libav \;
       
       - name: Change absolute dependency paths to relative
-        run: ./change_deps.sh
+        run: ./change_deps.sh '${{ github.workspace }}/libav'
+        working-directory: ./scripts
 
       - name: Pack and compress libs
-        run: tar -zcvf 'ffmpeg_n${{ steps.input-validation.outputs.FFMPEG_VERSION }}_macos_arm.tar.gz' lib
+        env:
+          FFMPEG_VERSION: ${{ needs.check_version.outputs.ffmpeg_version }}
+        run: tar -zcvf "ffmpeg_n${FFMPEG_VERSION}_macos_arm64.tar.gz" libav
 
       - name: Upload tar
         uses: actions/upload-artifact@v4
         with:
-          name: ffmpeg_n${{ steps.input-validation.outputs.FFMPEG_VERSION }}_macos_arm.tar.gz
-          path: ffmpeg_n${{ steps.input-validation.outputs.FFMPEG_VERSION }}_macos_arm.tar.gz
+          name: ffmpeg_n${{ needs.check_version.outputs.ffmpeg_version }}_macos_arm64.tar.gz
+          path: ffmpeg_n${{ needs.check_version.outputs.ffmpeg_version }}_macos_arm64.tar.gz
 
-      - name: Release
+  get_ffmpeg_linux_amd64:
+    runs-on: ubuntu-24.04
+    if: inputs.linux_amd64_prebuild_url != ''
+    needs: check_version
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Download FFmpeg prebuilts
+        run: wget -O ffmpeg.tar.xz '${{ inputs.linux_amd64_prebuild_url }}'
+
+      - name: Unpack FFmpeg sources
+        run: |
+          mkdir -p ffmpeg
+          tar --xz -xvf ffmpeg.tar.xz --strip-components=1 -C ./ffmpeg
+
+        # Finds all built *.n.so files. If a found file is a symlink it copies
+        # the file it points to under the symlink name
+      - name: Extract dynamic libraries
+        run: |
+          mkdir -p libav
+          find -L ./ffmpeg -type f -iregex "^.*/lib[a-zA-Z]+\.so\.[0-9]+$" -exec cp {} ./libav \;
+
+      - name: Pack and compress libs
+        env:
+          FFMPEG_VERSION: ${{ needs.check_version.outputs.ffmpeg_version }}
+        run: tar -zcvf "ffmpeg_n${FFMPEG_VERSION}_linux_x86_64.tar.gz" libav
+
+      - name: Upload tar
+        uses: actions/upload-artifact@v4
+        with:
+          name: ffmpeg_n${{ needs.check_version.outputs.ffmpeg_version }}_linux_x86_64.tar.gz
+          path: ffmpeg_n${{ needs.check_version.outputs.ffmpeg_version }}_linux_x86_64.tar.gz
+
+  get_ffmpeg_linux_arm64:
+    runs-on: ubuntu-24.04-arm
+    if: inputs.linux_arm64_prebuild_url != ''
+    needs: check_version
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Download FFmpeg prebuilts
+        run: wget -O ffmpeg.tar.xz '${{ inputs.linux_arm64_prebuild_url }}'
+
+      - name: Unpack FFmpeg sources
+        run: |
+          mkdir -p ffmpeg
+          tar --xz -xvf ffmpeg.tar.xz --strip-components=1 -C ./ffmpeg
+
+        # Finds all built *.n.so files. If a found file is a symlink it copies
+        # the file it points to under the symlink name
+      - name: Extract dynamic libraries
+        run: |
+          mkdir -p libav
+          find -L ./ffmpeg -type f -iregex "^.*/lib[a-zA-Z]+\.so\.[0-9]+$" -exec cp {} ./libav \;
+
+      - name: Pack and compress libs
+        env:
+          FFMPEG_VERSION: ${{ needs.check_version.outputs.ffmpeg_version }}
+        run: tar -zcvf "ffmpeg_n${FFMPEG_VERSION}_linux_arm64.tar.gz" libav
+
+      - name: Upload tar
+        uses: actions/upload-artifact@v4
+        with:
+          name: ffmpeg_n${{ needs.check_version.outputs.ffmpeg_version }}_linux_arm64.tar.gz
+          path: ffmpeg_n${{ needs.check_version.outputs.ffmpeg_version }}_linux_arm64.tar.gz
+
+  release_ffmpeg_prebuilds:
+    runs-on: ubuntu-24.04
+    if: ${{ always() && !failure() && !cancelled() }}
+    needs: [check_version, build_ffmpeg_macos, get_ffmpeg_linux_amd64, get_ffmpeg_linux_arm64]
+    permissions:
+      contents: write
+    steps:
+      - name: 📥 Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Downlad FFmpeg binaries
+        uses: actions/download-artifact@v5
+
+      - name: List files
+        run: ls -R ${{ github.workspace }}
+
+      - name: Release FFmpeg prebuilds
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: n${{ steps.input-validation.outputs.FFMPEG_VERSION }}
-          files: ffmpeg_n${{ steps.input-validation.outputs.FFMPEG_VERSION }}_macos_arm.tar.gz
+          tag_name: n${{ needs.check_version.outputs.ffmpeg_version }}
+          files: ${{ github.workspace }}/**/ffmpeg*.tar.gz
+          preserve_order: true
