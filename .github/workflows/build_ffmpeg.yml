@@ -96,17 +96,17 @@ jobs:
         # the file it points to under the symlink name
       - name: Extract dynamic libraries
         run: |
-          mkdir -p lib
-          find -LE ./ffmpeg -type f -iregex "^.*/lib[a-zA-Z/]+\.[0-9.]+dylib$" -exec cp {} ./lib \;
+          mkdir -p libav
+          find -LE ./ffmpeg -type f -iregex "^.*/lib[a-zA-Z/]+\.[0-9.]+dylib$" -exec cp {} ./libav \;
       
       - name: Change absolute dependency paths to relative
-        run: ./change_deps.sh '${{ github.workspace }}'
+        run: ./change_deps.sh '${{ github.workspace }}/libav'
         working-directory: ./scripts
 
       - name: Pack and compress libs
         env:
           FFMPEG_VERSION: ${{ needs.check_version.outputs.ffmpeg_version }}
-        run: tar -zcvf "ffmpeg_n${FFMPEG_VERSION}_macos_arm64.tar.gz" lib
+        run: tar -zcvf "ffmpeg_n${FFMPEG_VERSION}_macos_arm64.tar.gz" libav
 
       - name: Upload tar
         uses: actions/upload-artifact@v4
@@ -134,13 +134,13 @@ jobs:
         # the file it points to under the symlink name
       - name: Extract dynamic libraries
         run: |
-          mkdir -p lib
-          find -L ./ffmpeg -type f -iregex "^.*/lib[a-zA-Z]+\.so\.[0-9]+$" -exec cp {} ./lib \;
+          mkdir -p libav
+          find -L ./ffmpeg -type f -iregex "^.*/lib[a-zA-Z]+\.so\.[0-9]+$" -exec cp {} ./libav \;
 
       - name: Pack and compress libs
         env:
           FFMPEG_VERSION: ${{ needs.check_version.outputs.ffmpeg_version }}
-        run: tar -zcvf "ffmpeg_n${FFMPEG_VERSION}_linux_x86_64.tar.gz" lib
+        run: tar -zcvf "ffmpeg_n${FFMPEG_VERSION}_linux_x86_64.tar.gz" libav
 
       - name: Upload tar
         uses: actions/upload-artifact@v4
@@ -168,13 +168,13 @@ jobs:
         # the file it points to under the symlink name
       - name: Extract dynamic libraries
         run: |
-          mkdir -p lib
-          find -L ./ffmpeg -type f -iregex "^.*/lib[a-zA-Z]+\.so\.[0-9]+$" -exec cp {} ./lib \;
+          mkdir -p libav
+          find -L ./ffmpeg -type f -iregex "^.*/lib[a-zA-Z]+\.so\.[0-9]+$" -exec cp {} ./libav \;
 
       - name: Pack and compress libs
         env:
           FFMPEG_VERSION: ${{ needs.check_version.outputs.ffmpeg_version }}
-        run: tar -zcvf "ffmpeg_n${FFMPEG_VERSION}_linux_arm64.tar.gz" lib
+        run: tar -zcvf "ffmpeg_n${FFMPEG_VERSION}_linux_arm64.tar.gz" libav
 
       - name: Upload tar
         uses: actions/upload-artifact@v4

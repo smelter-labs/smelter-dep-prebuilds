@@ -16,7 +16,7 @@ fi
 
 SEARCH_DIR=$1
 
-for f in ${SEARCH_DIR}/lib/*.dylib; do
+for f in ${SEARCH_DIR}/*.dylib; do
     deps_to_change=$(otool -L $f | awk -F" " '{print $1}' | grep -E "^/usr/local/lib")
     lib_name=$(basename $f)
     install_name_tool -id $lib_name $f
