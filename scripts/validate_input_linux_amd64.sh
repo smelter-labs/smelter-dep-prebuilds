@@ -20,7 +20,7 @@ if [ -z "$FFMPEG_URL" ]; then
 fi
 
 # Checks if provided URL is URL to github BtbN/FFmpeg-Builds repo, and if it is pointing to `linux64-lgpl-shared` file. Captures version in `x.y` format
-URL_REGEX="^https://github\.com/BtbN/FFmpeg-Builds/releases/download/.+/ffmpeg-n([0-9]+\.[0-9]+)\.?[0-9]*-?[0-9]*-[a-zA-Z0-9]+-linux64-lgpl-shared-[0-9.]+\.tar\.xz$"
+URL_REGEX="^https://github\.com/BtbN/FFmpeg-Builds/releases/download/.+/ffmpeg-n([0-9]+\.[0-9]+)\.?[0-9]*-?[0-9]*-?[a-zA-Z0-9]*-linux64-lgpl-shared-[0-9.]+\.tar\.xz$"
 
 if [[ $FFMPEG_URL =~ $URL_REGEX ]]; then
     URL_VERSION=${BASH_REMATCH[1]}
