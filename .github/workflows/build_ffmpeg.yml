@@ -2,6 +2,10 @@ name: Build FFmpeg
 on:
   workflow_dispatch:
     inputs:
+      tag_name:
+        description: 'Tag name (testing only)'
+        default: ''
+        type: string
       mac_source_url:
         description: 'URL of FFmpeg source for MacOS build.'
         default: ''
@@ -119,6 +123,11 @@ jobs:
     if: inputs.linux_amd64_prebuild_url != ''
     needs: check_version
     steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -y -qq
+          sudo apt-get install binutils -y
+
       - name: Checkout repo
         uses: actions/checkout@v4
 
@@ -136,6 +145,11 @@ jobs:
         run: |
           mkdir -p libav
           find -L ./ffmpeg -type f -iregex "^.*/lib[a-zA-Z]+\.so\.[0-9]+$" -exec cp {} ./libav \;
+
+        # This addition makes the libav libraries see each other as dependencies
+      - name: Set libraries `runpath`
+        run: for lib in *.so*; do patchelf --add-rpath '$ORIGIN' "$lib"; done
+        working-directory: ./libav
 
       - name: Pack and compress libs
         env:
@@ -156,6 +170,11 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -y -qq
+          sudo apt-get install binutils -y
+
       - name: Download FFmpeg prebuilts
         run: wget -O ffmpeg.tar.xz '${{ inputs.linux_arm64_prebuild_url }}'
 
@@ -170,6 +189,11 @@ jobs:
         run: |
           mkdir -p libav
           find -L ./ffmpeg -type f -iregex "^.*/lib[a-zA-Z]+\.so\.[0-9]+$" -exec cp {} ./libav \;
+
+        # This addition makes the libav libraries see each other as dependencies
+      - name: Set libraries `runpath`
+        run: for lib in *.so*; do patchelf --add-rpath '$ORIGIN' "$lib"; done
+        working-directory: ./libav
 
       - name: Pack and compress libs
         env:
@@ -201,6 +225,7 @@ jobs:
       - name: Release FFmpeg prebuilds
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: n${{ needs.check_version.outputs.ffmpeg_version }}
+          # tag_name: n${{ needs.check_version.outputs.ffmpeg_version }}
+          tag_name: ${{ inputs.tag_name }}
           files: ${{ github.workspace }}/**/ffmpeg*.tar.gz
           preserve_order: true
