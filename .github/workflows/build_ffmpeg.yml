@@ -2,10 +2,6 @@ name: Build FFmpeg
 on:
   workflow_dispatch:
     inputs:
-      tag_name:
-        description: 'Tag name (testing only)'
-        default: ''
-        type: string
       mac_source_url:
         description: 'URL of FFmpeg source for MacOS build.'
         default: ''
@@ -225,7 +221,6 @@ jobs:
       - name: Release FFmpeg prebuilds
         uses: softprops/action-gh-release@v2
         with:
-          # tag_name: n${{ needs.check_version.outputs.ffmpeg_version }}
-          tag_name: ${{ inputs.tag_name }}
+          tag_name: n${{ needs.check_version.outputs.ffmpeg_version }}
           files: ${{ github.workspace }}/**/ffmpeg*.tar.gz
           preserve_order: true
