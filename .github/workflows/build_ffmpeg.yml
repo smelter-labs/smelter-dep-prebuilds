@@ -119,6 +119,11 @@ jobs:
     if: inputs.linux_amd64_prebuild_url != ''
     needs: check_version
     steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -y -qq
+          sudo apt-get install binutils -y
+
       - name: Checkout repo
         uses: actions/checkout@v4
 
@@ -136,6 +141,11 @@ jobs:
         run: |
           mkdir -p libav
           find -L ./ffmpeg -type f -iregex "^.*/lib[a-zA-Z]+\.so\.[0-9]+$" -exec cp {} ./libav \;
+
+        # Makes the libav libraries see each other as dependencies
+      - name: Set libraries `runpath`
+        run: for lib in *.so*; do patchelf --add-rpath '$ORIGIN' "$lib"; done
+        working-directory: ./libav
 
       - name: Pack and compress libs
         env:
@@ -156,6 +166,11 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -y -qq
+          sudo apt-get install binutils -y
+
       - name: Download FFmpeg prebuilts
         run: wget -O ffmpeg.tar.xz '${{ inputs.linux_arm64_prebuild_url }}'
 
@@ -170,6 +185,11 @@ jobs:
         run: |
           mkdir -p libav
           find -L ./ffmpeg -type f -iregex "^.*/lib[a-zA-Z]+\.so\.[0-9]+$" -exec cp {} ./libav \;
+
+        # Makes the libav libraries see each other as dependencies
+      - name: Set libraries `runpath`
+        run: for lib in *.so*; do patchelf --add-rpath '$ORIGIN' "$lib"; done
+        working-directory: ./libav
 
       - name: Pack and compress libs
         env:
