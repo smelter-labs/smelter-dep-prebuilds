@@ -142,7 +142,7 @@ jobs:
           mkdir -p libav
           find -L ./ffmpeg -type f -iregex "^.*/lib[a-zA-Z]+\.so\.[0-9]+$" -exec cp {} ./libav \;
 
-        # This addition makes the libav libraries see each other as dependencies
+        # Makes the libav libraries see each other as dependencies
       - name: Set libraries `runpath`
         run: for lib in *.so*; do patchelf --add-rpath '$ORIGIN' "$lib"; done
         working-directory: ./libav
@@ -186,7 +186,7 @@ jobs:
           mkdir -p libav
           find -L ./ffmpeg -type f -iregex "^.*/lib[a-zA-Z]+\.so\.[0-9]+$" -exec cp {} ./libav \;
 
-        # This addition makes the libav libraries see each other as dependencies
+        # Makes the libav libraries see each other as dependencies
       - name: Set libraries `runpath`
         run: for lib in *.so*; do patchelf --add-rpath '$ORIGIN' "$lib"; done
         working-directory: ./libav
