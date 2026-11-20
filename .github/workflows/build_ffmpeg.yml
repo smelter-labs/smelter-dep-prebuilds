@@ -57,7 +57,7 @@ jobs:
         working-directory: ./scripts
 
   build_ffmpeg_macos:
-    runs-on: macos-14
+    runs-on: macos-15
     if: inputs.mac_source_url != ''
     needs: check_version
     steps:
